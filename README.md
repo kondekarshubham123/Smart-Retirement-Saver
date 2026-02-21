@@ -1,82 +1,42 @@
-# Blackrock Hackathon API
+# Smart Retirement Saver (Monorepo)
 
-A production-grade FastAPI solution for automated retirement savings via expense-based micro-investments.
-
-## Tech Stack
-- FastAPI
-- Pandas, Numpy
-- Decimal (for precision math)
-- Uvicorn, Gunicorn
-- Celery (with Redis)
-- Docker, Docker Compose
+A comprehensive automated micro-savings and retirement projection system built for the Blackrock Hackathon.
 
 ## Project Structure
-```
-app/
-  api/           # API endpoints
-  config/        # Configuration
-  models/        # Pydantic models
-  services/      # Business logic
-  tasks/         # Celery tasks
-  utils/         # Utility functions
-main.py          # FastAPI app entrypoint
-requirements.txt
-Dockerfile
-docker-compose.yaml
-test/            # Automated tests
-.env.example     # Environment variable template
-```
 
-## Configuration
-- All key settings (rates, inflation, ports, celery, etc.) are in `app/config/settings.py` and can be overridden via environment variables or `.env` file.
-- Copy `.env.example` to `.env` and adjust as needed.
+This project is organized as a monorepo:
 
-## Running Locally
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Start Redis (for Celery):
-   ```bash
-   docker run -d -p 6379:6379 redis:7-alpine
-   ```
-3. Run the API:
-   ```bash
-   uvicorn app.main:app --reload --port 5477
-   ```
-4. Start Celery worker:
-   ```bash
-   celery -A app.tasks.celery_app.celery worker --loglevel=info
-   ```
+- **[backend/](file:///media/kondekar/Shubham/hackathons/Blackrock%20Hackathon/backend)**: Python (FastAPI) service for financial calculations, rules engine, and task queue (Celery/Redis).
+- **[frontend/](file:///media/kondekar/Shubham/hackathons/Blackrock%20Hackathon/frontend)**: React (TypeScript) dashboard for interactive visualization and simulation.
 
-## Running with Docker
+## Quick Start
+
+### 1. Prerequisite
+Ensure you have **Docker** and **Node.js** installed.
+
+### 2. Run Backend
 ```bash
-# Build and start all services
- docker-compose up --build
+cd backend
+docker compose up --build
 ```
+The API will be available at `http://localhost:5477`.
 
-## API Docs
-- Swagger UI: [http://localhost:5477/blackrock/challenge/v1/docs](http://localhost:5477/blackrock/challenge/v1/docs)
+### 3. Run Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The dashboard will be available at `http://localhost:3000`.
 
-## Async API (Scalability)
-For heavy workloads, use the async endpoints:
-- **Submit NPS**: `POST /blackrock/challenge/v1/returns:nps_async`
-- **Submit Index**: `POST /blackrock/challenge/v1/returns:index_async`
-- **Check Status**: `GET /blackrock/challenge/v1/returns/status/{task_id}`
+## Key Features
+- **Monorepo Design**: Clean separation of concerns with unified project management.
+- **Automated Round-ups**: Precision financial logic using `Decimal` for frictionless savings.
+- **Real-time Projections**: Interactive charts for NPS and Index Fund growth with inflation adjustment.
+- **Scalable Architecture**: Background task processing for heavy calculations.
+- **Premium UI**: Modern dark-mode dashboard with Glassmorphism.
 
-The async API utilizes Celery and Redis to process calculations in the background.
-
-## Testing
-- Place tests in the `test/` folder.
-- **Run tests locally**:
-  ```bash
-  pytest test/
-  ```
-- **Run tests inside Docker container**:
-  ```bash
-  # Assuming the container is running
-  docker exec -e PYTHONPATH=. blk-hacking-ind-shubham-kondekar pytest -v test/
-  ```
-
-## License
-MIT
+## Documentation
+- [Backend README](file:///media/kondekar/Shubham/hackathons/Blackrock%20Hackathon/backend/README.md)
+- [Frontend README](file:///media/kondekar/Shubham/hackathons/Blackrock%20Hackathon/frontend/README.md)
+- [Project Walkthrough](file:///home/kondekar/.gemini/antigravity/brain/f8e08ff8-6d66-4b1d-b093-e1b1dba70e85/walkthrough.md)
