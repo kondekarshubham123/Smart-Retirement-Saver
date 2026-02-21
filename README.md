@@ -60,9 +60,14 @@ test/            # Automated tests
 
 ## Testing
 - Place tests in the `test/` folder.
-- Example command:
+- **Run tests locally**:
   ```bash
   pytest test/
+  ```
+- **Run tests inside Docker container**:
+  ```bash
+  # Assuming the container is running
+  docker exec -e PYTHONPATH=. blk-hacking-ind-shubham-kondekar pytest -v test/
   ```
 
 ## License

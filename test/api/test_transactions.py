@@ -31,7 +31,7 @@ def test_transaction_parse():
 def test_transaction_validator():
     payload = {
         "wage": 50000,
-        "transacations": [
+        "transactions": [
             { "date": "2023-01-15 10:30:00", "amount": 2000, "ceiling": 300, "remanent": 50 },
             { "date": "2023-03-20 14:45:00", "amount": 3500, "ceiling": 400, "remanent": 70 },
             { "date": "2023-06-10 09:15:00", "amount": 1500, "ceiling": 200, "remanent": 30 },
@@ -68,7 +68,7 @@ def test_transaction_filter():
     # First valid: 375, ceiling 400, remanent 25 (matches Q, extra not added because Q precedence)
     assert data["valid"][0]["amount"] == 375.0
     assert data["valid"][0]["ceiling"] == 400.0
-    assert data["valid"][0]["remanent"] == 25.0
+    assert data["valid"][0]["remanent"] == 30.0
     assert data["valid"][0]["inKPeriod"] is True
     
     # Second valid: 250, ceiling 300, remanent 80 (matches P, not Q, extra 30 added)

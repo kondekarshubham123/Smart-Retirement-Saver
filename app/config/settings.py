@@ -8,8 +8,7 @@ class Settings(BaseSettings):
     port: int = 5477
     celery_broker_url: str = "redis://redis:6379/0"
     celery_result_backend: str = "redis://redis:6379/0"
-    class Config:
-        env_file = ".env"
+    model_config = {"env_file": ".env"}
 
 @lru_cache
 def get_settings():

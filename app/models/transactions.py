@@ -13,7 +13,7 @@ class TransactionParsed(TransactionInput):
 
 class TransactionValidationRequest(BaseModel):
     wage: float
-    transacations: List[TransactionParsed]
+    transactions: List[TransactionParsed]
 
 class InvalidTransaction(TransactionParsed):
     message: str
