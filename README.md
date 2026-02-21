@@ -9,6 +9,32 @@ This project is organized as a monorepo:
 - **[backend/](file:///media/kondekar/Shubham/hackathons/Blackrock%20Hackathon/backend)**: Python (FastAPI) service for financial calculations, rules engine, and task queue (Celery/Redis).
 - **[frontend/](file:///media/kondekar/Shubham/hackathons/Blackrock%20Hackathon/frontend)**: React (TypeScript) dashboard for interactive visualization and simulation.
 
+## System Flow
+
+```mermaid
+graph TD
+    User([User]) -- "Enters Profile & Expenses" --> Frontend[Frontend Dashboard]
+    
+    subgraph Frontend Logic
+        Frontend -- "Defines Rules" --> Rules{Rules Engine}
+        Rules -- "Q: Overrides" --> Calc[Calculation Request]
+        Rules -- "P: Additions" --> Calc
+        Rules -- "K: Evaluation Periods" --> Calc
+    end
+    
+    Calc -- "REST API" --> Backend[Backend FastAPI]
+    
+    subgraph Backend Processing
+        Backend -- "Process Transactions" --> Round[Round-Up Logic]
+        Round -- "Multiple of 100" --> Seed[Investment Seeds]
+        Seed -- "Apply Rules & Tax" --> Final[Corpus Growth Engine]
+        Final -- "Inflation Adjustment" --> Result[Financial Projections]
+    end
+    
+    Result -- "JSON Data" --> Frontend
+    Frontend -- "Visualizes" --> Charts[Interactive Charts]
+```
+
 ## Quick Start
 
 ### 1. Prerequisite
