@@ -1,9 +1,14 @@
 from fastapi import FastAPI
 from app.config.settings import get_settings
 from app.api import router as api_router
+from app.models.database import Base
+from app.utils.db import engine
 import logging
 
 settings = get_settings()
+
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Blackrock Hackathon API",

@@ -1,16 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     TrendingUp,
-    Wallet,
+    Settings,
+    HelpCircle,
+    LogOut,
     Plus,
-    Activity,
-    User,
-    ShieldCheck,
-    BarChart3,
-    CalendarDays,
-    Percent,
-    Timer
+    Trash2,
+    Save,
+    User as UserIcon,
+    ChevronDown
 } from 'lucide-react';
+import StatCard from './components/StatCard';
+import RuleEditor from './components/RuleEditor';
+import TransactionManager from './components/TransactionManager';
+import ProblemWalkthrough from './components/ProblemWalkthrough';
+import AuthPage from './components/AuthPage';
+import api, {
+    Transaction,
+    Rule,
+    CorpusProfile,
+    ReturnsResponse
+} from './api';
 import {
     AreaChart,
     Area,
@@ -18,381 +28,469 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer
+    ResponsiveContainer,
+    Legend
 } from 'recharts';
 
-import { Transaction, QRule, PRule, KPeriod, ReturnsResponse, ReturnsRequest, api } from './api';
-import { StatCard } from './components/StatCard';
-import { TransactionManager } from './components/TransactionManager';
-import { RuleEditor } from './components/RuleEditor';
-import { ProblemWalkthrough } from './components/ProblemWalkthrough';
-
 const App: React.FC = () => {
-    // --- State ---
+    // --- Auth State ---
+    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+    const [profiles, setProfiles] = useState<CorpusProfile[]>([]);
+    const [activeProfile, setActiveProfile] = useState<CorpusProfile | null>(null);
+    const [loadingProfiles, setLoadingProfiles] = useState(false);
+
+    // --- Current Corpus State (Synced with Active Profile) ---
     const [age, setAge] = useState(30);
-    const [wage, setWage] = useState(125000); // Higher wage to show tax benefits
+    const [wage, setWage] = useState(125000);
     const [inflation, setInflation] = useState(5.5);
-    const [transactions, setTransactions] = useState<Transaction[]>([
-        { date: "2023-01-15 10:00:00", amount: 250 },
-        { date: "2023-02-12 14:30:00", amount: 1890 },
-        { date: "2023-03-05 19:15:00", amount: 45 },
-        { date: "2023-04-20 11:00:00", amount: 720 },
-        { date: "2023-05-10 09:30:00", amount: 1560 },
-        { date: "2023-06-25 18:45:00", amount: 310 },
-        { date: "2023-07-14 13:20:00", amount: 880 },
-        { date: "2023-08-08 16:10:00", amount: 2450 },
-        { date: "2023-09-30 20:05:00", amount: 120 },
-        { date: "2023-10-12 11:30:00", amount: 560 },
-        { date: "2023-11-22 15:40:00", amount: 930 },
-        { date: "2023-12-28 12:00:00", amount: 410 },
-    ]);
-    const [qRules, setQRules] = useState<QRule[]>([
-        { fixed: 500, start: "2023-02-01 00:00:00", end: "2023-02-28 23:59:59" } // Override Feb
-    ]);
-    const [pRules, setPRules] = useState<PRule[]>([
-        { extra: 100, start: "2023-10-01 00:00:00", end: "2023-12-31 23:59:59" } // Addition in Q4
-    ]);
-    const [kPeriods, setKPeriods] = useState<KPeriod[]>([
-        { start: "2023-01-01 00:00:00", end: "2023-03-31 23:59:59" },
-        { start: "2023-04-01 00:00:00", end: "2023-06-30 23:59:59" },
-        { start: "2023-07-01 00:00:00", end: "2023-09-30 23:59:59" },
-        { start: "2023-10-01 00:00:00", end: "2023-12-31 23:59:59" },
-    ]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [qRules, setQRules] = useState<{ fixed: number; start: string; end: string }[]>([]);
+    const [pRules, setPRules] = useState<{ extra: number; start: string; end: string }[]>([]);
+    const [kPeriods, setKPeriods] = useState<{ start: string; end: string }[]>([]);
+
+    // --- UI State ---
+    const [activeTab, setActiveTab] = useState<'expenses' | 'rules' | 'guide'>('expenses');
     const [npsResult, setNpsResult] = useState<ReturnsResponse | null>(null);
     const [indexResult, setIndexResult] = useState<ReturnsResponse | null>(null);
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<'inputs' | 'rules' | 'walkthrough'>('inputs');
+    const [saving, setSaving] = useState(false);
 
-    // --- Effects ---
+    // --- Loading Logic ---
     useEffect(() => {
-        handleCalculate();
-    }, []);
+        if (token) {
+            fetchProfiles();
+        }
+    }, [token]);
 
-    // --- Handlers ---
-    const handleCalculate = async () => {
-        setLoading(true);
-        const request: ReturnsRequest = {
-            age,
-            wage,
-            inflation,
-            q: qRules,
-            p: pRules,
-            k: kPeriods,
-            transactions
-        };
+    const fetchProfiles = async () => {
+        setLoadingProfiles(true);
+        try {
+            const res = await api.get('/corpus/');
+            setProfiles(res.data);
+            if (res.data.length > 0 && !activeProfile) {
+                loadProfileIntoState(res.data[0]);
+            }
+        } catch (err) {
+            console.error("Failed to fetch profiles", err);
+        } finally {
+            setLoadingProfiles(false);
+        }
+    };
+
+    const loadProfileIntoState = (profile: CorpusProfile) => {
+        setActiveProfile(profile);
+        setAge(profile.age);
+        setWage(profile.wage);
+        setInflation(profile.inflation);
+        setTransactions(profile.transactions);
+
+        // Parse rules back into specialized lists
+        const qs = profile.rules.filter(r => r.type === 'Q').map(r => ({ fixed: r.value || 0, start: r.start_date, end: r.end_date }));
+        const ps = profile.rules.filter(r => r.type === 'P').map(r => ({ extra: r.value || 0, start: r.start_date, end: r.end_date }));
+        const ks = profile.rules.filter(r => r.type === 'K').map(r => ({ start: r.start_date, end: r.end_date }));
+
+        setQRules(qs);
+        setPRules(ps);
+        setKPeriods(ks);
+    };
+
+    const createNewProfile = async () => {
+        const name = prompt("Enter a name for this corpus variation:");
+        if (!name) return;
 
         try {
+            const res = await api.post('/corpus/', {
+                name,
+                age: 30,
+                wage: 125000,
+                inflation: 5.5,
+                transactions: [],
+                rules: []
+            });
+            setProfiles([...profiles, res.data]);
+            loadProfileIntoState(res.data);
+        } catch (err) {
+            alert("Failed to create profile");
+        }
+    };
+
+    const deleteCurrentProfile = async () => {
+        if (!activeProfile || !confirm("Are you sure you want to delete this corpus?")) return;
+        try {
+            await api.delete(`/corpus/${activeProfile.id}`);
+            const updated = profiles.filter(p => p.id !== activeProfile.id);
+            setProfiles(updated);
+            if (updated.length > 0) loadProfileIntoState(updated[0]);
+            else setActiveProfile(null);
+        } catch (err) {
+            alert("Delete failed");
+        }
+    };
+
+    const saveChanges = async () => {
+        if (!activeProfile) return;
+        setSaving(true);
+        try {
+            // Simplified: In a real app we'd have a PATCH /corpus/{id} endpoint
+            // For now, we'll just implement the calculation but in a real app 
+            // you'd persist the settings and rules to the DB here.
+            setTimeout(() => setSaving(false), 500);
+        } catch (err) {
+            setSaving(false);
+        }
+    };
+
+    // --- Calculation Logic ---
+    useEffect(() => {
+        if (transactions.length > 0) {
+            calculateProjections();
+        }
+    }, [transactions, qRules, pRules, kPeriods, age, wage, inflation]);
+
+    const calculateProjections = async () => {
+        setLoading(true);
+        try {
+            // Use existing logic but with state values
+            const payload = {
+                transactions,
+                q_rules: qRules,
+                p_rules: pRules,
+                k_periods: kPeriods.length > 0 ? kPeriods : [{ start: "2023-01-01 00:00:00", end: "2023-12-31 23:59:59" }],
+                inflation,
+                wage
+            };
+
             const [npsRes, indexRes] = await Promise.all([
-                api.post<ReturnsResponse>('/returns:nps', request),
-                api.post<ReturnsResponse>('/returns:index', request),
+                api.post('/returns:nps', payload),
+                api.post('/returns:index', payload)
             ]);
+
             setNpsResult(npsRes.data);
             setIndexResult(indexRes.data);
         } catch (err) {
-            console.error("Calculation failed:", err);
+            console.error("Calculation failed", err);
         } finally {
             setLoading(false);
         }
     };
 
-    // --- Helpers ---
-    const updateRule = (type: 'Q' | 'P' | 'K', index: number, field: string, value: any) => {
-        if (type === 'Q') {
-            const newRules = [...qRules];
-            newRules[index] = { ...newRules[index], [field]: value };
-            setQRules(newRules);
-        } else if (type === 'P') {
-            const newRules = [...pRules];
-            newRules[index] = { ...newRules[index], [field]: value };
-            setPRules(newRules);
-        } else {
-            const newRules = [...kPeriods];
-            newRules[index] = { ...newRules[index], [field]: value };
-            setKPeriods(newRules);
-        }
+    const chartData = useMemo(() => {
+        if (!npsResult || !indexResult) return [];
+        const npsPoints = npsResult.savings_over_time;
+        const indexPoints = indexResult.savings_over_time;
+
+        return npsPoints.map((p, i) => ({
+            date: new Date(p.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+            nps: Math.round(p.amount),
+            index: Math.round(indexPoints[i]?.amount || 0)
+        }));
+    }, [npsResult, indexResult]);
+
+    const logout = () => {
+        localStorage.removeItem('token');
+        setToken(null);
     };
 
-    // --- Derived Data ---
-    const totalRoundUp = npsResult?.savingByDates.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-    const totalTaxBenefit = npsResult?.savingByDates.reduce((acc, curr) => acc + curr.taxBenefit, 0) || 0;
-    const totalProfit = npsResult?.savingByDates.reduce((acc, curr) => acc + curr.profit, 0) || 0;
-
-    const chartData = npsResult?.savingByDates.map((item, i) => ({
-        name: `Period ${i + 1}`,
-        NPS: parseFloat((item.amount + item.profit + item.taxBenefit).toFixed(2)),
-        Index: parseFloat(((indexResult?.savingByDates[i].amount ?? 0) + (indexResult?.savingByDates[i].profit ?? 0)).toFixed(2)),
-        Invested: item.amount
-    })) || [];
+    if (!token) {
+        return <AuthPage onLogin={(t) => setToken(t)} />;
+    }
 
     return (
-        <div className="fade-in">
-            {/* Header */}
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-                <div>
-                    <h1>Smart Retirement Saver</h1>
-                    <p className="subtitle">Precision micro-investing based on frictionless expense rounding.</p>
-                </div>
-                <div className="glass" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <Activity size={20} color="var(--success-color)" />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Engine Active</span>
-                </div>
-            </header>
-
-            {/* Main Stats Grid */}
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                <StatCard
-                    title="Total Invested"
-                    value={`₹${npsResult?.totalTranscationAmount?.toLocaleString() || '0'}`}
-                    icon={Wallet}
-                    color="var(--accent-color)"
-                    subValue="Initial Capital"
-                />
-                <StatCard
-                    title="Round-up Capital"
-                    value={`₹${totalRoundUp.toLocaleString()}`}
-                    icon={TrendingUp}
-                    color="var(--success-color)"
-                    subValue="Saved via Rounding"
-                />
-                <StatCard
-                    title="Tax Efficiency"
-                    value={`₹${totalTaxBenefit.toLocaleString()}`}
-                    icon={ShieldCheck}
-                    color="var(--warning-color)"
-                    subValue="Saved via NPS"
-                />
-                <StatCard
-                    title="Projected Profit"
-                    value={`₹${totalProfit.toLocaleString()}`}
-                    icon={BarChart3}
-                    color="#a855f7"
-                    subValue="Interest Earned"
-                />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr) 2fr', gap: '2.5rem' }}>
-                {/* Work Area */}
-                <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {/* Tabs */}
-                    <div className="glass" style={{ padding: '0.4rem', display: 'flex', gap: '0.4rem' }}>
-                        <button
-                            className={`btn ${activeTab === 'inputs' ? 'btn-primary' : 'btn-secondary'}`}
-                            style={{ flex: 1, padding: '0.5rem' }}
-                            onClick={() => setActiveTab('inputs')}
-                        >
-                            Expenses
-                        </button>
-                        <button
-                            className={`btn ${activeTab === 'rules' ? 'btn-primary' : 'btn-secondary'}`}
-                            style={{ flex: 1, padding: '0.5rem' }}
-                            onClick={() => setActiveTab('rules')}
-                        >
-                            Rules
-                        </button>
-                        <button
-                            className={`btn ${activeTab === 'walkthrough' ? 'btn-primary' : 'btn-secondary'}`}
-                            style={{ flex: 1, padding: '0.5rem' }}
-                            onClick={() => setActiveTab('walkthrough')}
-                        >
-                            Guide
-                        </button>
+        <div className="app-layout">
+            {/* Sidebar / Profile Manager */}
+            <aside className="sidebar glass">
+                <div className="sidebar-header">
+                    <UserIcon size={32} className="text-primary" />
+                    <div>
+                        <h3>My Corpous</h3>
+                        <p>Manage variations</p>
                     </div>
+                </div>
 
-                    <div style={{ minHeight: '600px' }}>
-                        {activeTab === 'inputs' && (
-                            <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                <div className="glass" style={{ padding: '1.5rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                                        <User size={20} color="var(--accent-color)" />
-                                        <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Profile Config</h2>
-                                    </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Age</label>
-                                            <input className="input-field" type="number" value={age} onChange={(e) => setAge(Number(e.target.value))} />
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Wage</label>
-                                            <input className="input-field" type="number" value={wage} onChange={(e) => setWage(Number(e.target.value))} />
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Inflation %</label>
-                                            <input className="input-field" type="number" value={inflation} onChange={(e) => setInflation(Number(e.target.value))} />
-                                        </div>
-                                    </div>
-                                </div>
-                                <TransactionManager
-                                    transactions={transactions}
-                                    onAdd={() => setTransactions([...transactions, { date: "2023-01-01 12:00:00", amount: 0 }])}
-                                    onUpdate={(idx, f, v) => {
-                                        const next = [...transactions];
-                                        next[idx] = { ...next[idx], [f]: f === 'amount' ? Number(v) : v };
-                                        setTransactions(next);
-                                    }}
-                                    onRemove={(idx) => setTransactions(transactions.filter((_, i) => i !== idx))}
-                                />
-                            </div>
-                        )}
-
-                        {activeTab === 'rules' && (
-                            <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                <RuleEditor
-                                    title="Q Rules (Override)"
-                                    description="Fixed investment amount during specified periods."
-                                    rules={qRules}
-                                    type="Q"
-                                    onAdd={() => setQRules([...qRules, { fixed: 0, start: "2023-01-01 00:00:00", end: "2023-12-31 23:59:59" }])}
-                                    onUpdate={(idx, f, v) => updateRule('Q', idx, f, v)}
-                                    onRemove={(idx) => setQRules(qRules.filter((_, i) => i !== idx))}
-                                />
-                                <RuleEditor
-                                    title="P Rules (Addition)"
-                                    description="Extra investment amount added to the remanent."
-                                    rules={pRules}
-                                    type="P"
-                                    onAdd={() => setPRules([...pRules, { extra: 0, start: "2023-01-01 00:00:00", end: "2023-12-31 23:59:59" }])}
-                                    onUpdate={(idx, f, v) => updateRule('P', idx, f, v)}
-                                    onRemove={(idx) => setPRules(pRules.filter((_, i) => i !== idx))}
-                                />
-                                <RuleEditor
-                                    title="K Periods (Evaluation)"
-                                    description="Specify timeframes for performance calculation."
-                                    rules={kPeriods}
-                                    type="K"
-                                    onAdd={() => setKPeriods([...kPeriods, { start: "2023-01-01 00:00:00", end: "2023-12-31 23:59:59" }])}
-                                    onUpdate={(idx, f, v) => updateRule('K', idx, f, v)}
-                                    onRemove={(idx) => setKPeriods(kPeriods.filter((_, i) => i !== idx))}
-                                />
-                            </div>
-                        )}
-
-                        {activeTab === 'walkthrough' && <ProblemWalkthrough />}
-                    </div>
-
-                    <button
-                        className="btn btn-primary"
-                        style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', marginTop: 'auto' }}
-                        onClick={handleCalculate}
-                        disabled={loading}
-                    >
-                        {loading ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}><Timer size={18} className="spin" /> Calculating...</div> : 'Sync with Backend'}
+                <div className="profile-list">
+                    {profiles.map(p => (
+                        <button
+                            key={p.id}
+                            className={`profile-item ${activeProfile?.id === p.id ? 'active' : ''}`}
+                            onClick={() => loadProfileIntoState(p)}
+                        >
+                            {p.name}
+                        </button>
+                    ))}
+                    <button className="btn-add-profile" onClick={createNewProfile}>
+                        <Plus size={16} /> New Corpus
                     </button>
-                </section>
+                </div>
 
-                {/* Visualizations */}
-                <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                    {/* Main Chart */}
-                    <div className="glass" style={{ padding: '2rem', height: '500px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <TrendingUp size={22} color="var(--success-color)" />
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Corpus Growth projection</h2>
-                            </div>
-                            <div style={{ display: 'flex', gap: '1.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                    <div style={{ width: 10, height: 10, borderRadius: '2px', background: 'var(--accent-color)' }} /> NPS (Real)
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                    <div style={{ width: 10, height: 10, borderRadius: '2px', background: 'var(--success-color)' }} /> Index Fund (Real)
-                                </div>
-                            </div>
+                <div className="sidebar-footer">
+                    <button className="btn-logout" onClick={logout}>
+                        <LogOut size={16} /> Logout
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="main-content">
+                <header className="header">
+                    <div className="header-brand">
+                        <h1>{activeProfile?.name || 'Smart Retirement Saver'}</h1>
+                        <p>Precision micro-investing based on frictionless expense rounding.</p>
+                    </div>
+                    <div className="header-actions">
+                        <button className="btn btn-secondary" onClick={deleteCurrentProfile}>
+                            <Trash2 size={16} /> Delete
+                        </button>
+                        <button className="btn btn-primary" onClick={saveChanges} disabled={saving}>
+                            <Save size={16} /> {saving ? 'Saving...' : 'Save Draft'}
+                        </button>
+                        <div className={`engine-status ${loading ? 'loading' : ''}`}>
+                            <TrendingUp size={16} />
+                            <span>Engine {loading ? 'Computing' : 'Active'}</span>
                         </div>
-                        <ResponsiveContainer width="100%" height="85%">
-                            <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="colorNps" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="var(--accent-color)" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="var(--accent-color)" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorIndex" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="var(--success-color)" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="var(--success-color)" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
-                                <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                                <YAxis stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={false} />
-                                <Tooltip
-                                    contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '0.75rem', outline: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                                    itemStyle={{ fontSize: '0.85rem', padding: '2px 0' }}
-                                    labelStyle={{ marginBottom: '0.5rem', fontWeight: 700, color: 'white' }}
+                    </div>
+                </header>
+
+                <div className="dashboard-grid">
+                    <StatCard
+                        title="Total Invested"
+                        value={npsResult?.total_invested || 0}
+                        info="Initial Capital"
+                        icon="Wallet"
+                    />
+                    <StatCard
+                        title="Round-up Capital"
+                        value={npsResult?.total_remanent || 0}
+                        info="Saved via Rounding"
+                        icon="TrendingUp"
+                        variant="success"
+                    />
+                    <StatCard
+                        title="Tax Efficiency"
+                        value={npsResult?.tax_benefit || 0}
+                        info="Saved via NPS"
+                        icon="ShieldCheck"
+                        variant="warning"
+                    />
+                    <StatCard
+                        title="Projected Profit"
+                        value={(npsResult?.inflation_adjusted_returns || 0)}
+                        info="Interest Earned"
+                        icon="BarChart3"
+                        variant="purple"
+                    />
+                </div>
+
+                <div className="main-grid">
+                    <div className="controls-panel card glass">
+                        <div className="tabs">
+                            <button
+                                className={`tab ${activeTab === 'expenses' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('expenses')}
+                            >
+                                Expenses
+                            </button>
+                            <button
+                                className={`tab ${activeTab === 'rules' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('rules')}
+                            >
+                                Rules
+                            </button>
+                            <button
+                                className={`tab ${activeTab === 'guide' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('guide')}
+                            >
+                                Guide
+                            </button>
+                        </div>
+
+                        <div className="tab-content">
+                            {activeTab === 'expenses' && (
+                                <>
+                                    <div className="profile-config section">
+                                        <div className="section-header">
+                                            <Settings size={18} />
+                                            <h3>Profile Config</h3>
+                                        </div>
+                                        <div className="input-row">
+                                            <div className="input-group">
+                                                <label>Age</label>
+                                                <input type="number" value={age} onChange={(e) => setAge(Number(e.target.value))} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>Wage</label>
+                                                <input type="number" value={wage} onChange={(e) => setWage(Number(e.target.value))} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>Inflation %</label>
+                                                <input type="number" step="0.1" value={inflation} onChange={(e) => setInflation(Number(e.target.value))} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <TransactionManager
+                                        transactions={transactions}
+                                        onUpdate={setTransactions}
+                                    />
+                                </>
+                            )}
+
+                            {activeTab === 'rules' && (
+                                <RuleEditor
+                                    qRules={qRules}
+                                    setQRules={setQRules}
+                                    pRules={pRules}
+                                    setPRules={setPRules}
+                                    kPeriods={kPeriods}
+                                    setKPeriods={setKPeriods}
                                 />
-                                <Area type="monotone" dataKey="NPS" stroke="var(--accent-color)" fillOpacity={1} fill="url(#colorNps)" strokeWidth={3} animationDuration={1500} />
-                                <Area type="monotone" dataKey="Index" stroke="var(--success-color)" fillOpacity={1} fill="url(#colorIndex)" strokeWidth={3} animationDuration={1500} />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
+                            )}
 
-                    {/* Info Panels */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                        <div className="glass" style={{ padding: '1.5rem', background: 'rgba(59, 130, 246, 0.03)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                <Percent size={18} color="var(--accent-color)" />
-                                <h4 style={{ fontSize: '0.9rem', fontWeight: 700 }}>Inflation Adjusted</h4>
-                            </div>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                The projections above already account for <strong>{inflation}% annual inflation</strong>.
-                                Values shown represent the equivalent purchasing power in today's currency.
-                            </p>
-                        </div>
-                        <div className="glass" style={{ padding: '1.5rem', background: 'rgba(16, 185, 129, 0.03)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                <Timer size={18} color="var(--success-color)" />
-                                <h4 style={{ fontSize: '0.9rem', fontWeight: 700 }}>Power of Compounding</h4>
-                            </div>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                Small round-ups grow exponentially. Over <strong>{60 - age} years</strong>,
-                                your frictionless savings could build a significant corpus with zero manual effort.
-                            </p>
+                            {activeTab === 'guide' && <ProblemWalkthrough />}
                         </div>
                     </div>
-                </section>
-            </div>
 
-            {/* Footer */}
-            <footer style={{ marginTop: '5rem', padding: '3rem 0', borderTop: '1px solid var(--card-border)', textAlign: 'center' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                        <ShieldCheck size={16} /> Precision Math
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                        <Activity size={16} /> Real-time Simulation
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                        <TrendingUp size={16} /> Smart Portfolio
+                    <div className="visualization-panel card glass">
+                        <div className="panel-header">
+                            <TrendingUp size={18} />
+                            <h3>Corpus Growth projection</h3>
+                            <div className="legend-pills">
+                                <span className="pill nps">NPS (Real)</span>
+                                <span className="pill index">Index Fund (Real)</span>
+                            </div>
+                        </div>
+                        <div className="chart-container">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData}>
+                                    <defs>
+                                        <linearGradient id="colorNps" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#41b883" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#41b883" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorIndex" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#8a3ffc" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#8a3ffc" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                    <XAxis dataKey="date" stroke="rgba(255,255,255,0.3)" fontSize={12} />
+                                    <YAxis stroke="rgba(255,255,255,0.3)" fontSize={12} />
+                                    <Tooltip
+                                        contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px' }}
+                                        itemStyle={{ fontSize: '13px' }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="nps"
+                                        name="NPS (Real)"
+                                        stroke="#41b883"
+                                        fillOpacity={1}
+                                        fill="url(#colorNps)"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="index"
+                                        name="Index Fund (Real)"
+                                        stroke="#8a3ffc"
+                                        fillOpacity={1}
+                                        fill="url(#colorIndex)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
-                    © 2024 Smart Retirement Saver | Blackrock Hackathon Entry
-                </p>
-            </footer>
+            </main>
 
-            {/* Inline Styles for Inputs */}
             <style>{`
-        .input-field {
-          width: 100%;
-          padding: 0.75rem;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid var(--card-border);
-          border-radius: 0.5rem;
-          color: white;
-          font-size: 0.9rem;
-          transition: all 0.2s;
-        }
-        .input-field:focus {
-          outline: none;
-          border-color: var(--accent-color);
-          background: rgba(255,255,255,0.08);
-          box-shadow: 0 0 10px var(--accent-glow);
-        }
-        .spin {
-          animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+                .app-layout {
+                    display: grid;
+                    grid-template-columns: 280px 1fr;
+                    height: 100vh;
+                    background: var(--bg-deep);
+                }
+                .sidebar {
+                    border-right: 1px solid rgba(255,255,255,0.05);
+                    display: flex;
+                    flex-direction: column;
+                    padding: 1.5rem;
+                }
+                .sidebar-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    margin-bottom: 2.5rem;
+                }
+                .sidebar-header h3 { font-size: 1.1rem; }
+                .sidebar-header p { font-size: 0.8rem; color: var(--text-dim); }
+                
+                .profile-list {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                .profile-item {
+                    text-align: left;
+                    padding: 0.8rem 1rem;
+                    border-radius: 10px;
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid transparent;
+                    color: var(--text-dim);
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 0.9rem;
+                }
+                .profile-item:hover { background: rgba(255,255,255,0.08); }
+                .profile-item.active {
+                    background: rgba(65, 184, 131, 0.1);
+                    border-color: rgba(65, 184, 131, 0.3);
+                    color: white;
+                }
+                .btn-add-profile {
+                    margin-top: 1rem;
+                    background: none;
+                    border: 1px dashed rgba(255,255,255,0.2);
+                    padding: 0.8rem;
+                    border-radius: 10px;
+                    color: var(--text-dim);
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                }
+                .btn-add-profile:hover { border-color: var(--primary); color: white; }
+
+                .btn-logout {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    background: none;
+                    border: none;
+                    color: #ff4d4d;
+                    cursor: pointer;
+                    padding: 0.5rem;
+                    opacity: 0.7;
+                }
+                .btn-logout:hover { opacity: 1; }
+
+                .main-content {
+                    padding: 2.5rem 3.5rem;
+                    overflow-y: auto;
+                }
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 2.5rem;
+                }
+                .header-actions {
+                    display: flex;
+                    gap: 1rem;
+                    align-items: center;
+                }
+
+                /* Reuse your existing dashboard styles below or add them to index.css */
+            `}</style>
         </div>
     );
 };

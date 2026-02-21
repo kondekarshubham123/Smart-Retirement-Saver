@@ -12,3 +12,9 @@ pydantic-settings
 pytest
 httpx
 watchfiles
+sqlalchemy
+psycopg2-binary
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+alembic

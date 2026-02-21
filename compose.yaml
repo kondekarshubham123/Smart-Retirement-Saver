@@ -8,8 +8,11 @@ services:
       - ./backend/.env
     depends_on:
       - redis
+      - db
     volumes:
       - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/blackrock
     command: [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5477", "--reload", "--reload-dir", "app" ]
 
   celery-worker:
@@ -17,21 +20,37 @@ services:
     command: celery -A app.tasks.celery_app.celery worker --loglevel=info
     depends_on:
       - redis
+      - db
     env_file:
       - ./backend/.env
     volumes:
       - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/blackrock
 
   redis:
     image: redis:7-alpine
+    container_name: smart-retirement-redis
     ports:
       - "6379:6379"
+
+  db:
+    image: postgres:15-alpine
+    container_name: smart-retirement-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=blackrock
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: ../backend/Dockerfile # Reuse backend Dockerfile for simplicity or create new?
-      # Actually, better to create a simplified one for frontend or just let user run it with npm.
-      # For now, I'll keep it as an optional service or just leave it out of compose if not Dockerized.
-    profiles: [ "frontend" ] # Only run if explicitly asked
-    # ... (skipping for now to avoid complexity)
+      dockerfile: ../backend/Dockerfile
+    profiles: [ "frontend" ]
+
+volumes:
+  postgres_data:

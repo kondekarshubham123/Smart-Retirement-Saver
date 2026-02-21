@@ -43,3 +43,34 @@ The dashboard will be available at `http://localhost:3000`.
 ## Documentation
 - [Backend README](backend/README.md)
 - [Frontend README](frontend/README.md)
+
+---
+
+## 🏁 Hackerak Submission
+
+1. **Git repository**
+   - URL: `https://github.com/kondekarshubham123/Smart-Retirement-Saver` (replace with your public repo link)
+   - This README serves as the high‑level overview of the project, covering architecture, usage, and deployment.
+
+2. **Docker container image**
+   - A multi‑service Docker Compose configuration lives in the `backend/` directory (`docker-compose.yaml`).
+   - To pull and run the prebuilt image (assuming it is published to a registry):
+     ```bash
+     # pull the image (example name; substitute with the actual image tag)
+     docker pull ghcr.io/kondekarshubham123/smart-retirement-saver:latest
+
+     # start services using the included compose file
+     cd backend
+     docker compose up --build
+     ```
+   - The compose file will start the FastAPI service (port 5477) and a Redis instance for Celery.  After pulling the image, the `docker compose up` command will recreate the service from the pulled image.
+
+3. **Video demonstration description**
+   > Welcome to the Smart Retirement Saver demo! In this video I walk through the full
+   > stack of our Blackrock Hackathon entry. You’ll see the sleek React dashboard deployed
+   > on GitHub Pages, an explanation of the backend FastAPI service running on Render,
+   > and a live example of submitting retirement rules and transactions.  I also show
+   > how to clone the repository, run the application locally using Docker Compose, and
+   > highlight key architectural decisions.  Feel free to like, comment, and subscribe!
+
+   (Copy the above text into your YouTube video description when uploading.)
