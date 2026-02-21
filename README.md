@@ -40,6 +40,15 @@ The dashboard will be available at `http://localhost:3000`.
 - **Frontend**: https://kondekarshubham123.github.io/Smart-Retirement-Saver/
 - **Backend API docs**: https://smart-retirement-saver.onrender.com/blackrock/challenge/v1/docs
 
+> [!IMPORTANT]
+> **Async APIs & Live Deployment**:
+> The following async endpoints will **not** work on the live Render environment (https://smart-retirement-saver.onrender.com/) because only the API container is deployed for load testing (without the Celery worker/Redis stack):
+> - `/blackrock/challenge/v1/returns:nps_async`
+> - `/blackrock/challenge/v1/returns:index_async`
+> - `/blackrock/challenge/v1/returns/status/{task_id}`
+>
+> **Evaluators**: Please run the application locally using the `compose.yaml` file to test these asynchronous features.
+
 ## Documentation
 - [Backend README](backend/README.md)
 - [Frontend README](frontend/README.md)
