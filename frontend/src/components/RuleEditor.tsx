@@ -71,7 +71,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({
                                     <input
                                         type="number"
                                         value={type === 'Q' ? rule.fixed : rule.extra}
-                                        onChange={(e) => onUpdate(idx, type === 'Q' ? 'fixed' : 'extra', Number(e.target.value))}
+                                        onChange={(e) => onUpdate(idx, type === 'Q' ? 'fixed' : 'extra', e.target.value === '' ? '' : Number(e.target.value))}
                                         style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 1.75rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)', borderRadius: '0.4rem', color: 'white', fontSize: '0.75rem' }}
                                     />
                                     <Hash size={12} style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
