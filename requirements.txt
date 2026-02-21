@@ -11,3 +11,4 @@ psutil
 pydantic-settings
 pytest
 httpx
+watchfiles
