@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5477/blackrock/challenge/v1';
+// the frontend will use Vite environment variables to determine the
+// backend API host.  when running locally the proxy (see
+// vite.config.ts) will forward `/blackrock` to localhost:5477, but for a
+// production build you should set `VITE_API_BASE_URL` to the public URL of
+// the backend (e.g. the Render address below).
+//
+// The variable is injected at build time; Vite prepends `import.meta.env.`
+// and exposes only vars prefixed with `VITE_`.
+const BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    'http://localhost:5477/blackrock/challenge/v1';
 
 export const api = axios.create({
     baseURL: BASE_URL,
