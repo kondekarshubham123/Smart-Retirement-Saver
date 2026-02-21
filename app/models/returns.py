@@ -23,3 +23,7 @@ class ReturnsResponse(BaseModel):
     totalTranscationAmount: float
     totalCeiling: float
     savingByDates: List[SavingsByDate]
+
+class TaskResponse(BaseModel):
+    task_id: str
+    status: str

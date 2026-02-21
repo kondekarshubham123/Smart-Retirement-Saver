@@ -58,6 +58,14 @@ test/            # Automated tests
 ## API Docs
 - Swagger UI: [http://localhost:5477/blackrock/challenge/v1/docs](http://localhost:5477/blackrock/challenge/v1/docs)
 
+## Async API (Scalability)
+For heavy workloads, use the async endpoints:
+- **Submit NPS**: `POST /blackrock/challenge/v1/returns:nps_async`
+- **Submit Index**: `POST /blackrock/challenge/v1/returns:index_async`
+- **Check Status**: `GET /blackrock/challenge/v1/returns/status/{task_id}`
+
+The async API utilizes Celery and Redis to process calculations in the background.
+
 ## Testing
 - Place tests in the `test/` folder.
 - **Run tests locally**:
