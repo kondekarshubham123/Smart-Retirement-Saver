@@ -2,7 +2,7 @@ version: '3.8'
 services:
   api:
     build: .
-    container_name: retirement-savings-api
+    container_name: blk-hacking-ind-shubham-kondekar
     ports:
       - "5477:5477"
     env_file:
@@ -14,7 +14,6 @@ services:
     command: [ "gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:5477", "--reload" ]
   celery:
     build: .
-    container_name: retirement-savings-worker
     command: celery -A app.tasks.celery_app.celery worker --loglevel=info
     depends_on:
       - redis
@@ -24,6 +23,5 @@ services:
       - .:/app
   redis:
     image: redis:7-alpine
-    container_name: retirement-savings-redis
     ports:
       - "6379:6379"

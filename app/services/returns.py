@@ -4,8 +4,8 @@ from app.config.settings import get_settings
 
 def calculate_nps_returns(request: ReturnsRequest) -> ReturnsResponse:
     # Placeholder: implement NPS logic
-    return ReturnsResponse(transactionsTotalAmount=0, transactionsTotalCeiling=0, savingsByDates=[])
+    return ReturnsResponse(totalTranscationAmount=0, totalCeiling=0, savingByDates=[])
 
 def calculate_index_returns(request: ReturnsRequest) -> ReturnsResponse:
     # Placeholder: implement Index logic
-    return ReturnsResponse(transactionsTotalAmount=0, transactionsTotalCeiling=0, savingsByDates=[])
+    return ReturnsResponse(totalTranscationAmount=0, totalCeiling=0, savingByDates=[])

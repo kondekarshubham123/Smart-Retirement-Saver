@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Optional
 
@@ -9,10 +9,11 @@ class TransactionInput(BaseModel):
 class TransactionParsed(TransactionInput):
     ceiling: float
     remanent: float
+    inKPeriod: Optional[bool] = None
 
 class TransactionValidationRequest(BaseModel):
     wage: float
-    transactions: List[TransactionParsed]
+    transacations: List[TransactionParsed]
 
 class InvalidTransaction(TransactionParsed):
     message: str
@@ -20,7 +21,6 @@ class InvalidTransaction(TransactionParsed):
 class TransactionValidationResponse(BaseModel):
     valid: List[TransactionParsed]
     invalid: List[InvalidTransaction]
-    duplicate: List[TransactionParsed]
 
 class QPeriod(BaseModel):
     fixed: float
@@ -40,7 +40,8 @@ class TransactionFilterRequest(BaseModel):
     q: List[QPeriod]
     p: List[PPeriod]
     k: List[KPeriod]
-    transactions: List[TransactionParsed]
+    wage: float
+    transactions: List[TransactionInput]
 
 class TransactionFilterResponse(BaseModel):
     valid: List[TransactionParsed]

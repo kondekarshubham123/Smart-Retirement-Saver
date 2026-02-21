@@ -9,3 +9,5 @@ celery
 redis
 psutil
 pydantic-settings
+pytest
+httpx

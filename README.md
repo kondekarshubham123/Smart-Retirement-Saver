@@ -56,7 +56,7 @@ test/            # Automated tests
 ```
 
 ## API Docs
-- Swagger UI: [http://localhost:5477/docs](http://localhost:5477/docs)
+- Swagger UI: [http://localhost:5477/blackrock/challenge/v1/docs](http://localhost:5477/blackrock/challenge/v1/docs)
 
 ## Testing
 - Place tests in the `test/` folder.
