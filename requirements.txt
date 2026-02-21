@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+gunicorn
+pandas
+numpy
+python-decouple
+pydantic
+celery
+redis
+psutil
+pydantic-settings
