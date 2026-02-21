@@ -36,7 +36,10 @@ The dashboard will be available at `http://localhost:3000`.
 - **Scalable Architecture**: Background task processing for heavy calculations.
 - **Premium UI**: Modern dark-mode dashboard with Glassmorphism.
 
+### ⭐ Live Deployments
+- **Frontend**: https://kondekarshubham123.github.io/Smart-Retirement-Saver/
+- **Backend API docs**: https://smart-retirement-saver.onrender.com/blackrock/challenge/v1/docs
+
 ## Documentation
-- [Backend README](file:///media/kondekar/Shubham/hackathons/Blackrock%20Hackathon/backend/README.md)
-- [Frontend README](file:///media/kondekar/Shubham/hackathons/Blackrock%20Hackathon/frontend/README.md)
-- [Project Walkthrough](file:///home/kondekar/.gemini/antigravity/brain/f8e08ff8-6d66-4b1d-b093-e1b1dba70e85/walkthrough.md)
+- [Backend README](backend/README.md)
+- [Frontend README](frontend/README.md)

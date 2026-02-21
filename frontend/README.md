@@ -2,6 +2,11 @@
 
 A premium, interactive frontend for the Blackrock Hackathon micro-investment system.
 
+**Live Deployments**
+- Frontend: https://kondekarshubham123.github.io/Smart-Retirement-Saver/
+- Backend API docs: https://smart-retirement-saver.onrender.com/blackrock/challenge/v1/docs
+
+
 ## Features
 - **Interactive Dashboard**: Real-time investment projections based on your expenses.
 - **Rule Editors**: Manage Q (Override), P (Addition), and K (Evaluation) rules with ease.
