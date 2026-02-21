@@ -67,6 +67,12 @@ For heavy workloads, use the async endpoints:
 
 The async API utilizes Celery and Redis to process calculations in the background.
 
+## ⭐ Live Deployment
+- **API Docs**: [https://smart-retirement-saver.onrender.com/blackrock/challenge/v1/docs](https://smart-retirement-saver.onrender.com/blackrock/challenge/v1/docs)
+
+> [!WARNING]
+> The async APIs listed above (`/returns:nps_async`, `/returns:index_async`, and `/status/{task_id}`) are **disabled** on the Render deployment. Only the core API container is hosted there for evaluation of synchronous response times and load testing. For full functionality including background task processing, please use the **Docker Compose** setup provided in this repository.
+
 ## Testing
 - Place tests in the `test/` folder.
 - **Run tests locally**:
