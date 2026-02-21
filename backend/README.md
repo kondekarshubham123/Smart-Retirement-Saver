@@ -29,6 +29,7 @@ test/            # Automated tests
 
 ## Configuration
 - All key settings (rates, inflation, ports, celery, etc.) are in `app/config/settings.py` and can be overridden via environment variables or `.env` file.
+- CORS origins are configured in `app/main.py`.  By default `http://localhost:3000` is permitted; when the frontend is deployed to Render the URL `https://smart-retirement-saver.onrender.com` must also be added.  If you host the frontend on GitHub Pages add `https://kondekarshubham123.github.io`.  Adjust the list for any additional clients.
 - Copy `.env.example` to `.env` and adjust as needed.
 
 ## Running Locally

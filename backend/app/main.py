@@ -19,6 +19,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 origins = [
     "http://localhost:3000",
+    # allow the deployed frontend on Render
+    "https://smart-retirement-saver.onrender.com",
+    # GitHub Pages hosting for the front-end
+    "https://kondekarshubham123.github.io",
     # add other allowed origins here, or use ["*"] for all
 ]
 
