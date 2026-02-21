@@ -217,7 +217,7 @@ const App: React.FC = () => {
                                         </div>
                                         <div>
                                             <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Inflation %</label>
-                                            <input className="input-field" type="number" value={inflation} onChange={(e) => setInflation(e.target.value === '' ? '' : Number(e.target.value))} />
+                                            <input className="input-field" type="number" value={inflation} onChange={(e) => setInflation(e.target.value === '' ? '' : Number(e.target.value))} disabled />
                                         </div>
                                     </div>
                                 </div>
