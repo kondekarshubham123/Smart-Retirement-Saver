@@ -35,6 +35,7 @@ The dashboard will be available at `http://localhost:3000`.
 - **Real-time Projections**: Interactive charts for NPS and Index Fund growth with inflation adjustment.
 - **Scalable Architecture**: Background task processing for heavy calculations.
 - **Premium UI**: Modern dark-mode dashboard with Glassmorphism.
+- **Mobile Friendly**: Fully responsive design for seamless use on any device (Phones, Tablets, Desktop).
 
 ### ⭐ Live Deployments
 - **Frontend**: https://kondekarshubham123.github.io/Smart-Retirement-Saver/

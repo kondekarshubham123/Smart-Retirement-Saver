@@ -8,6 +8,7 @@ A premium, interactive frontend for the Blackrock Hackathon micro-investment sys
 
 
 ## Features
+- **Mobile Friendly**: Fully responsive design for seamless use on any device.
 - **Interactive Dashboard**: Real-time investment projections based on your expenses.
 - **Rule Editors**: Manage Q (Override), P (Addition), and K (Evaluation) rules with ease.
 - **Dynamic Charting**: Visualize your corpus growth (NPS vs Index Fund) with inflation adjustment.
