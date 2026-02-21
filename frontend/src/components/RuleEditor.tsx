@@ -39,7 +39,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {rules.map((rule, idx) => (
-                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr 40px', gap: '0.75rem', alignItems: 'end' }}>
+                    <div key={idx} className="rule-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr 40px', gap: '0.75rem', alignItems: 'end' }}>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Start Date</label>
                             <div style={{ position: 'relative' }}>
@@ -84,6 +84,13 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({
                     </div>
                 ))}
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .rule-row {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

@@ -3,7 +3,7 @@ import { Info, HelpCircle, ArrowRight, CornerDownRight } from 'lucide-react';
 
 export const ProblemWalkthrough: React.FC = () => {
     return (
-        <div className="glass" style={{ padding: '2rem' }}>
+        <div className="glass walkthrough-container" style={{ padding: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 <HelpCircle size={24} color="var(--accent-color)" />
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Understanding the Micro-Investment Logic</h2>
@@ -57,6 +57,16 @@ export const ProblemWalkthrough: React.FC = () => {
                     </p>
                 </div>
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .walkthrough-container {
+                        padding: 1rem !important;
+                    }
+                    .walkthrough-container h2 {
+                        font-size: 1.1rem !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

@@ -127,7 +127,7 @@ const App: React.FC = () => {
     return (
         <div className="fade-in">
             {/* Header */}
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+            <header className="responsive-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', flexWrap: 'wrap', gap: '1.5rem' }}>
                 <div>
                     <h1>Smart Retirement Saver</h1>
                     <p className="subtitle">Precision micro-investing based on frictionless expense rounding.</p>
@@ -139,7 +139,7 @@ const App: React.FC = () => {
             </header>
 
             {/* Main Stats Grid */}
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div className="stats-grid" style={{ display: 'flex', gap: '1.5rem', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
                 <StatCard
                     title="Total Invested"
                     value={`₹${npsResult?.totalTranscationAmount?.toLocaleString() || '0'}`}
@@ -170,7 +170,7 @@ const App: React.FC = () => {
                 />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr) 2fr', gap: '2.5rem' }}>
+            <div className="main-grid">
                 {/* Work Area */}
                 <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {/* Tabs */}
@@ -206,7 +206,7 @@ const App: React.FC = () => {
                                         <User size={20} color="var(--accent-color)" />
                                         <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Profile Config</h2>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                                    <div className="profile-config-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                                         <div>
                                             <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Age</label>
                                             <input className="input-field" type="number" value={age} onChange={(e) => setAge(Number(e.target.value))} />
@@ -282,7 +282,7 @@ const App: React.FC = () => {
                 {/* Visualizations */}
                 <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                     {/* Main Chart */}
-                    <div className="glass" style={{ padding: '2rem', height: '500px' }}>
+                    <div className="glass chart-container" style={{ padding: '2rem', height: '500px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <TrendingUp size={22} color="var(--success-color)" />
@@ -324,7 +324,7 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Info Panels */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    <div className="info-panels-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                         <div className="glass" style={{ padding: '1.5rem', background: 'rgba(59, 130, 246, 0.03)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                                 <Percent size={18} color="var(--accent-color)" />
@@ -350,8 +350,8 @@ const App: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <footer style={{ marginTop: '5rem', padding: '3rem 0', borderTop: '1px solid var(--card-border)', textAlign: 'center' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.5rem' }}>
+            <footer className="responsive-footer" style={{ marginTop: '5rem', padding: '3rem 0', borderTop: '1px solid var(--card-border)', textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                         <ShieldCheck size={16} /> Precision Math
                     </div>
@@ -391,6 +391,41 @@ const App: React.FC = () => {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+
+        .main-grid {
+          display: grid;
+          grid-template-columns: minmax(400px, 1fr) 2fr;
+          gap: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+          .main-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .stats-grid > div {
+            min-width: 100%;
+          }
+          .profile-config-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .chart-container {
+            height: 350px !important;
+            padding: 1rem !important;
+          }
+          .info-panels-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .responsive-header {
+            text-align: center;
+            justify-content: center !important;
+          }
+          .responsive-footer div {
+            gap: 1rem !important;
+          }
         }
       `}</style>
         </div>

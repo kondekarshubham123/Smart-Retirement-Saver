@@ -29,7 +29,7 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '430px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                 {transactions.map((tx, idx) => (
-                    <div key={idx} className="glass" style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', display: 'grid', gridTemplateColumns: '1fr 1.5fr 40px', gap: '1rem', alignItems: 'end' }}>
+                    <div key={idx} className="glass transaction-row" style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', display: 'grid', gridTemplateColumns: '1fr 1.5fr 40px', gap: '1rem', alignItems: 'end' }}>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Amount</label>
                             <div style={{ position: 'relative' }}>
@@ -65,6 +65,17 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
                     </div>
                 )}
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .transaction-row {
+                        grid-template-columns: 1fr 1fr !important;
+                    }
+                    .transaction-row > button {
+                        grid-column: span 2;
+                        text-align: center;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
