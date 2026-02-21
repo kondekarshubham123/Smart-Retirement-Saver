@@ -363,7 +363,7 @@ const App: React.FC = () => {
                     </div>
                 </div>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
-                    © 2024 Smart Retirement Saver | Blackrock Hackathon Entry
+                    © 2026 Smart Retirement Saver | Blackrock Hackathon | Shubham Kondekar
                 </p>
             </footer>
 
