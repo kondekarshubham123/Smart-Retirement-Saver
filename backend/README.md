@@ -56,6 +56,12 @@ test/            # Automated tests
  docker-compose up --build
 ```
 
+> **Note:** the public deployment at https://smart-retirement-saver.onrender.com/ is hosted
+> on the free tier of Render.  After about one minute of inactivity the service will
+> spin down; you may need to send a request (or restart the service via the Render
+> dashboard) before the frontend link works.  To test locally you can always run the
+> backend yourself using the instructions above.
+
 ## API Docs
 - Swagger UI: [http://localhost:5477/blackrock/challenge/v1/docs](http://localhost:5477/blackrock/challenge/v1/docs)
 

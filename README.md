@@ -79,3 +79,7 @@ The dashboard will be available at `http://localhost:3000`.
 ## Documentation
 - [Backend README](backend/README.md)
 - [Frontend README](frontend/README.md)
+> **Note:** the public API deployment (https://smart-retirement-saver.onrender.com/) is
+> running on Render's free plan and will automatically sleep after about one minute of
+> inactivity.  If the UI at the GitHub Pages link appears unresponsive, start the backend
+> manually or wake the service via the Render dashboard before retrying.
