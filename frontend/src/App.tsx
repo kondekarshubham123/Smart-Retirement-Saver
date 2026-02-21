@@ -29,9 +29,9 @@ import { ProblemWalkthrough } from './components/ProblemWalkthrough';
 
 const App: React.FC = () => {
     // --- State ---
-    const [age, setAge] = useState(30);
-    const [wage, setWage] = useState(125000); // Higher wage to show tax benefits
-    const [inflation, setInflation] = useState(5.5);
+    const [age, setAge] = useState<number | ''>(30);
+    const [wage, setWage] = useState<number | ''>(125000); // Higher wage to show tax benefits
+    const [inflation, setInflation] = useState<number | ''>(5.5);
     const [transactions, setTransactions] = useState<Transaction[]>([
         { date: "2023-01-15 10:00:00", amount: 250 },
         { date: "2023-02-12 14:30:00", amount: 1890 },
@@ -72,13 +72,13 @@ const App: React.FC = () => {
     const handleCalculate = async () => {
         setLoading(true);
         const request: ReturnsRequest = {
-            age,
-            wage,
-            inflation,
-            q: qRules,
-            p: pRules,
+            age: age === '' ? 0 : age,
+            wage: wage === '' ? 0 : wage,
+            inflation: inflation === '' ? 0 : inflation,
+            q: qRules.map(r => ({ ...r, fixed: r.fixed === ('' as any) ? 0 : r.fixed })),
+            p: pRules.map(r => ({ ...r, extra: r.extra === ('' as any) ? 0 : r.extra })),
             k: kPeriods,
-            transactions
+            transactions: transactions.map(t => ({ ...t, amount: t.amount === ('' as any) ? 0 : t.amount }))
         };
 
         try {
@@ -209,15 +209,15 @@ const App: React.FC = () => {
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                                         <div>
                                             <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Age</label>
-                                            <input className="input-field" type="number" value={age} onChange={(e) => setAge(Number(e.target.value))} />
+                                            <input className="input-field" type="number" value={age} onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))} />
                                         </div>
                                         <div>
                                             <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Wage</label>
-                                            <input className="input-field" type="number" value={wage} onChange={(e) => setWage(Number(e.target.value))} />
+                                            <input className="input-field" type="number" value={wage} onChange={(e) => setWage(e.target.value === '' ? '' : Number(e.target.value))} />
                                         </div>
                                         <div>
                                             <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Inflation %</label>
-                                            <input className="input-field" type="number" value={inflation} onChange={(e) => setInflation(Number(e.target.value))} />
+                                            <input className="input-field" type="number" value={inflation} onChange={(e) => setInflation(e.target.value === '' ? '' : Number(e.target.value))} />
                                         </div>
                                     </div>
                                 </div>
@@ -226,7 +226,7 @@ const App: React.FC = () => {
                                     onAdd={() => setTransactions([...transactions, { date: "2023-01-01 12:00:00", amount: 0 }])}
                                     onUpdate={(idx, f, v) => {
                                         const next = [...transactions];
-                                        next[idx] = { ...next[idx], [f]: f === 'amount' ? Number(v) : v };
+                                        next[idx] = { ...next[idx], [f]: f === 'amount' ? (v === '' ? '' : Number(v)) : v };
                                         setTransactions(next);
                                     }}
                                     onRemove={(idx) => setTransactions(transactions.filter((_, i) => i !== idx))}
@@ -341,7 +341,7 @@ const App: React.FC = () => {
                                 <h4 style={{ fontSize: '0.9rem', fontWeight: 700 }}>Power of Compounding</h4>
                             </div>
                             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                Small round-ups grow exponentially. Over <strong>{60 - age} years</strong>,
+                                Small round-ups grow exponentially. Over <strong>{60 - (Number(age) || 0)} years</strong>,
                                 your frictionless savings could build a significant corpus with zero manual effort.
                             </p>
                         </div>
