@@ -18,6 +18,8 @@ app = FastAPI(
 from fastapi.middleware.cors import CORSMiddleware
 
 origins = [
+    "http://localhost",
+    "http://localhost:80",
     "http://localhost:3000",
     # allow the deployed frontend on Render
     "https://smart-retirement-saver.onrender.com",

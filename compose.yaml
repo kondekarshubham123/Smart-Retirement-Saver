@@ -1,6 +1,6 @@
 services:
   backend-api:
-    build: ./backend
+    image: kondekarshubham123/blk-hacking-ind-shubham-kondekar:latest
     container_name: blk-hacking-ind-shubham-kondekar
     ports:
       - "5477:5477"
@@ -8,19 +8,16 @@ services:
       - ./backend/.env
     depends_on:
       - redis
-    volumes:
-      - ./backend:/app
-    command: [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5477", "--reload", "--reload-dir", "app" ]
+    # Removed volume mount for final image as requested
+    command: [ "gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:5477" ]
 
   celery-worker:
-    build: ./backend
+    image: kondekarshubham123/blk-hacking-ind-shubham-kondekar:latest
     command: celery -A app.tasks.celery_app.celery worker --loglevel=info
     depends_on:
       - redis
     env_file:
       - ./backend/.env
-    volumes:
-      - ./backend:/app
 
   redis:
     image: redis:7-alpine
@@ -28,10 +25,12 @@ services:
       - "6379:6379"
 
   frontend:
+    image: kondekarshubham123/blk-hacking-ind-shubham-kondekar-frontend:latest
     build:
       context: ./frontend
-      dockerfile: ../backend/Dockerfile # Reuse backend Dockerfile for simplicity or create new?
-      # Actually, better to create a simplified one for frontend or just let user run it with npm.
-      # For now, I'll keep it as an optional service or just leave it out of compose if not Dockerized.
-    profiles: [ "frontend" ] # Only run if explicitly asked
-    # ... (skipping for now to avoid complexity)
+      dockerfile: Dockerfile
+    container_name: blk-hacking-ind-shubham-kondekar-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend-api

@@ -38,22 +38,18 @@ graph TD
 ## Quick Start
 
 ### 1. Prerequisite
-Ensure you have **Docker** and **Node.js** installed.
+Ensure you have **Docker** installed.
 
-### 2. Run Backend
+### 2. Run the Entire Application
+Run the following command in the root directory:
 ```bash
-cd backend
 docker compose up --build
 ```
-The API will be available at `http://localhost:5477`.
 
-### 3. Run Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The dashboard will be available at `http://localhost:3000`.
+### 3. Access the Services
+- **Frontend Dashboard**: `http://localhost` (Port 80)
+- **Backend API**: `http://localhost:5477`
+- **API Documentation**: `http://localhost:5477/blackrock/challenge/v1/docs`
 
 ## Key Features
 - **Monorepo Design**: Clean separation of concerns with unified project management.
